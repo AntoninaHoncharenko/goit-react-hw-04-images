@@ -32,10 +32,13 @@ export const App = () => {
     if (query === '') {
       return;
     }
+
+    const controller = new AbortController();
+
     const fetch = async function () {
       try {
         setLoading(true);
-        const data = await fetchImages(query, page);
+        const data = await fetchImages(query, page, controller);
 
         if (data.hits.length < 1) {
           toast.warning(
@@ -64,6 +67,10 @@ export const App = () => {
     };
 
     fetch();
+
+    return () => {
+      controller.abort();
+    };
   }, [query, page]);
 
   return (
@@ -71,7 +78,9 @@ export const App = () => {
       <SearchBar onSubmit={handleSubmit} />
       {images.length > 0 && <ImageGallery images={images} />}
       {loading && <Loader />}
-      {total > 12 && !loading && <Button onLoadMore={loadMore} />}
+      {page < Math.ceil(total / 12) && !loading && (
+        <Button onLoadMore={loadMore} />
+      )}
 
       <ToastContainer
         position="top-center"
